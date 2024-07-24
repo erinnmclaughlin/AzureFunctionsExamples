@@ -1,4 +1,5 @@
 using System.Net;
+using FunctionsApp.Bindings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -7,6 +8,12 @@ using Microsoft.OpenApi.Models;
 using AuthorizationLevel = Microsoft.Azure.Functions.Worker.AuthorizationLevel;
 
 namespace FunctionsApp.Functions;
+
+public class GetRandomNumberQuery
+{
+    public int Min { get; set; } = int.MinValue;
+    public int Max { get; set; } = int.MaxValue;
+}
 
 // also see DatabaseFunctions, which include other HTTP endpoints
 public sealed class HttpFunctions
@@ -17,15 +24,16 @@ public sealed class HttpFunctions
     [OpenApiParameter("max", In = ParameterLocation.Query, Type = typeof(int), Description = "The maximum value to generate.")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(int), Description = "Returns a random number.")]
     [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(string), Description = "Returns an error message.")]
-    public IActionResult GetRandomNumber([HttpTrigger(AuthorizationLevel.Anonymous, "GET")] HttpRequest request)
+    public IActionResult GetRandomNumber(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "GET")] 
+        HttpRequest request,
+        [BindQuery]
+        GetRandomNumberQuery queryParams)
     {
-        var min = int.TryParse(request.Query["min"].ToString(), out var minValue) ? minValue : int.MinValue;
-        var max = int.TryParse(request.Query["max"].ToString(), out var maxValue) ? maxValue : int.MaxValue;
-
-        if (min > max)
+        if (queryParams.Min > queryParams.Max)
             return new BadRequestObjectResult("Min value must be less than or equal to max value.");
         
-        var number = Random.Shared.Next(min, max);
+        var number = Random.Shared.Next(queryParams.Min, queryParams.Max);
         return new OkObjectResult(number);
     }
     
