@@ -19,7 +19,7 @@ internal sealed class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddl
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unhandled exception occured while attempting to invoke {FunctionName}.", functionName);
+            logger.LogError(ex, "An unhandled exception occurred while attempting to invoke {FunctionName}.", functionName);
             await CreateErrorResponse(context);
         }
         finally
