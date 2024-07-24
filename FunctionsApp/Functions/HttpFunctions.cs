@@ -11,8 +11,8 @@ namespace FunctionsApp.Functions;
 
 public class GetRandomNumberQuery
 {
-    public int Min { get; set; } = int.MinValue;
-    public int Max { get; set; } = int.MaxValue;
+    public int? Min { get; set; }
+    public int? Max { get; set; }
 }
 
 // also see DatabaseFunctions, which include other HTTP endpoints
@@ -20,8 +20,8 @@ public sealed class HttpFunctions
 {
     [Function(nameof(GetRandomNumber))]
     [OpenApiOperation(nameof(GetRandomNumber))]
-    [OpenApiParameter("min", In = ParameterLocation.Query, Type = typeof(int), Description = "The minimum value to generate.")]
-    [OpenApiParameter("max", In = ParameterLocation.Query, Type = typeof(int), Description = "The maximum value to generate.")]
+    [OpenApiParameter("min", In = ParameterLocation.Query, Type = typeof(int?), Required = false, Description = "The minimum value to generate.")]
+    [OpenApiParameter("max", In = ParameterLocation.Query, Type = typeof(int?), Required = false, Description = "The maximum value to generate.")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(int), Description = "Returns a random number.")]
     [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(string), Description = "Returns an error message.")]
     public IActionResult GetRandomNumber(
@@ -33,7 +33,7 @@ public sealed class HttpFunctions
         if (queryParams.Min > queryParams.Max)
             return new BadRequestObjectResult("Min value must be less than or equal to max value.");
         
-        var number = Random.Shared.Next(queryParams.Min, queryParams.Max);
+        var number = Random.Shared.Next(queryParams.Min ?? int.MinValue, (queryParams.Max + 1) ?? int.MaxValue);
         return new OkObjectResult(number);
     }
     
